@@ -1,0 +1,185 @@
+/* ============================================================================
+   crt.css — CRT 显像管视觉层
+   六层叠加，全部 position:fixed + pointer-events:none。
+   效果强度由 <html data-fx="full|low|off"> 控制（见 js/effects.js）。
+   ========================================================================= */
+
+.crt {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-crt);
+  pointer-events: none;
+  overflow: hidden;
+  /* 屏幕四角随外框一起收圆，制造"玻璃管"的感觉 */
+  border-radius: var(--bezel-radius);
+}
+
+.crt > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+   1. 扫描线 —— 横向暗行。在近黑底上"看不见"，但会让所有发光元素出现条纹，
+      这正是我们要的：条纹感来自内容被切分，而不是来自黑线本身。
+   --------------------------------------------------------------------------- */
+.crt__scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, .34) 0 1px,
+    rgba(0, 0, 0, 0)   1px 3px
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   2. 孔径光栅 —— 真实 Trinitron 显像管是竖条状的 RGB 荧光栅，
+      而不是圆点荫罩。1px 三色竖条在 1x 屏上几乎不可见，
+      在 Retina 上会形成极细的彩色微光，是无损质感的关键。
+   --------------------------------------------------------------------------- */
+.crt__grille {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 0, 80,  .050) 0 1px,
+    rgba(0, 255, 120, .050) 1px 2px,
+    rgba(60, 120, 255, .050) 2px 3px
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   3. 刷新扫描带 —— 一道缓慢下移的亮带，模拟场频刷新。
+      刻意做得很淡、很慢（8s 一趟），是"角落里的呼吸"而不是干扰。
+   --------------------------------------------------------------------------- */
+.crt__sweep {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  height: 26vh;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 240, 255, .028) 36%,
+    rgba(201, 255, 232, .052) 50%,
+    rgba(0, 240, 255, .028) 64%,
+    transparent 100%
+  );
+  animation: crt-sweep 8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes crt-sweep {
+  from { transform: translateY(-30vh); }
+  to   { transform: translateY(118vh); }
+}
+
+/* ---------------------------------------------------------------------------
+   4. 噪点 —— SVGO 生成的 feTurbulence 平铺 160×160，
+      通过 steps() 跳变 background-position 来"运动"，
+      比逐帧重绘 SVG 滤镜便宜得多。
+   --------------------------------------------------------------------------- */
+.crt__noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: .05;
+  animation: crt-noise .9s steps(5) infinite;
+}
+
+@keyframes crt-noise {
+  0%   { background-position:   0px   0px; }
+  20%  { background-position: -42px  14px; }
+  40%  { background-position:  24px -32px; }
+  60%  { background-position: -16px  36px; }
+  80%  { background-position:  38px  20px; }
+  100% { background-position:   0px   0px; }
+}
+
+/* ---------------------------------------------------------------------------
+   5. 玻璃反光 —— 左上角一道极淡的斜向高光，暗示屏幕前方有一层玻璃
+   --------------------------------------------------------------------------- */
+.crt__glare {
+  background-image:
+    radial-gradient(58% 36% at 20% 6%, rgba(201, 255, 232, .055), transparent 70%),
+    linear-gradient(158deg, rgba(201, 255, 232, .030) 0%, transparent 24%);
+}
+
+/* ---------------------------------------------------------------------------
+   6. 暗角 + 管体阴影 —— 让画面中心亮、四角沉下去
+   --------------------------------------------------------------------------- */
+.crt__vignette {
+  background-image: radial-gradient(
+    118% 96% at 50% 50%,
+    rgba(0, 0, 0, 0)     40%,
+    rgba(0, 0, 0, .42)   80%,
+    rgba(0, 0, 0, .74)  100%
+  );
+  box-shadow: inset 0 0 9vw 1.5vw rgba(0, 0, 0, .45);
+  border-radius: var(--bezel-radius);
+}
+
+/* ===========================================================================
+   机柜外壳 —— 一圈像素边框，把浏览器窗口变成一台显示器
+   =========================================================================== */
+.bezel {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-bezel);
+  pointer-events: none;
+  border: var(--bezel) solid #0a0616;
+  border-radius: var(--bezel-radius);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 240, 255, .16),
+    inset 0 0 26px rgba(0, 240, 255, .055),
+    0 0 0 1px rgba(176, 38, 255, .20),
+    0 0 24px rgba(0, 0, 0, .9);
+}
+
+/* 左上 / 右下各一颗螺丝，让"机柜"这件事落实 */
+.bezel::before,
+.bezel::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: var(--dim);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.bezel::before { top: calc(-1 * var(--bezel) / 2 - 2px); left: 16px; }
+.bezel::after  { bottom: calc(-1 * var(--bezel) / 2 - 2px); right: 16px; }
+
+
+/* ===========================================================================
+   效果强度分级
+   ========================================================================= */
+
+/* ---- off：彻底关闭，只留内容 ---- */
+html[data-fx="off"] .crt,
+html[data-fx="off"] .bezel {
+  display: none;
+}
+
+/* ---- low：保留静态质感（扫描线 / 光栅 / 暗角 / 反光），去掉所有运动 ---- */
+html[data-fx="low"] .crt__sweep,
+html[data-fx="low"] .crt__noise,
+html[data-fx="low"] .crt__grille {
+  display: none;
+}
+
+html[data-fx="low"] .crt__scanlines {
+  opacity: .7;
+}
+
+/* ---- 用户系统级"减少动态效果"：动画层一律停掉，静态质感保留 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .crt__sweep,
+  .crt__noise {
+    animation: none;
+  }
+  .crt__sweep { display: none; }
+}
+
+/* ---- 标签页切到后台时暂停动画，别让用户笔记本风扇狂转（由 effects.js 加类） ---- */
+html.is-hidden .crt__sweep,
+html.is-hidden .crt__noise {
+  animation-play-state: paused;
+}

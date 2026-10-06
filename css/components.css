@@ -1,0 +1,578 @@
+/* ============================================================================
+   components.css — 可复用的组件
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+   分节命令行标签
+   用终端提示符取代"01 / ABOUT"这种通用眉标：它同时暗示了终端彩蛋的存在
+   --------------------------------------------------------------------------- */
+.cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .5em;
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-12);
+  font-size: var(--fs-sm);
+}
+.cmd__path { color: var(--dim); }
+.cmd__sign { color: var(--neon-magenta); }
+.cmd__text { color: var(--neon-cyan); opacity: .8; }
+
+
+/* ---------------------------------------------------------------------------
+   按钮 —— 悬停时用 steps() 从左向右"填充"，像像素在点亮
+   --------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .6em 1.15em;
+  font-family: var(--f-term);
+  font-size: var(--fs-term);
+  letter-spacing: .06em;
+  color: var(--phosphor);
+  border: 1px solid var(--c-34);
+  background-color: rgba(13, 5, 24, .78);
+  background-image: linear-gradient(to right, var(--neon-cyan), var(--phosphor));
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 0% 100%;
+  transition: background-size 240ms steps(6, end),
+              color var(--t-fast) var(--ease),
+              border-color var(--t-fast) var(--ease),
+              box-shadow var(--t-mid) var(--ease);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  color: var(--void);
+  border-color: var(--neon-cyan);
+  background-size: 100% 100%;
+  box-shadow: var(--glow);
+  text-shadow: none;
+}
+
+.btn--solid {
+  color: var(--void);
+  border-color: var(--neon-cyan);
+  background-size: 100% 100%;
+  text-shadow: none;
+  box-shadow: 0 0 12px rgba(0, 240, 255, .28);
+}
+.btn--solid:hover,
+.btn--solid:focus-visible {
+  box-shadow: 0 0 22px rgba(0, 240, 255, .55);
+  background-image: linear-gradient(to right, var(--phosphor), var(--neon-cyan));
+}
+
+
+/* ---------------------------------------------------------------------------
+   面板 + 键值表
+   --------------------------------------------------------------------------- */
+.panel {
+  position: relative;
+  padding: var(--sp-3) var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-20);
+  background-image: linear-gradient(to bottom, rgba(21, 10, 43, .58), rgba(13, 5, 24, .78));
+}
+
+/* 四角的像素切角标记 —— 只在面板与终端窗口上用，保持稀缺 */
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--neon-cyan);
+  opacity: .8;
+}
+.panel::before { top: -1px; left: -1px;  border-right: 0; border-bottom: 0; }
+.panel::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+.panel__title {
+  padding-bottom: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-12);
+  font-size: var(--fs-xs);
+  letter-spacing: .2em;
+  color: var(--neon-cyan);
+  text-shadow: var(--glow);
+}
+
+.kv { display: grid; }
+.kv__row {
+  display: grid;
+  gap: .1rem;
+  padding-block: .6rem;
+  border-bottom: 1px dashed var(--v-30);
+}
+.kv__row:last-child { border-bottom: 0; padding-bottom: 0; }
+.kv__row dt {
+  font-size: var(--fs-xs);
+  letter-spacing: .1em;
+  color: var(--dim-txt);
+}
+.kv__row dd {
+  font-size: var(--fs-sm);
+  color: var(--phosphor);
+}
+
+
+/* ---------------------------------------------------------------------------
+   正文块
+   --------------------------------------------------------------------------- */
+.prose { max-width: var(--measure); }
+.prose p {
+  margin-bottom: var(--sp-3);
+  color: var(--phosphor-dim);
+}
+.prose p:last-child { margin-bottom: 0; }
+
+
+/* ---------------------------------------------------------------------------
+   量化结果 —— 数字用琥珀色，像单色琥珀终端
+   --------------------------------------------------------------------------- */
+.res {
+  display: grid;
+  gap: .45rem;
+  margin-block: var(--sp-3);
+}
+.res--sm { margin-block: var(--sp-2); gap: .35rem; }
+
+.res__item {
+  display: flex;
+  align-items: baseline;
+  gap: .8em;
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+.kpi {
+  flex: none;
+  min-width: 7em;
+  font-size: var(--fs-term);
+  letter-spacing: .01em;
+  color: var(--amber);
+  text-shadow: var(--glow-amber);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ---------------------------------------------------------------------------
+   折叠详情
+   --------------------------------------------------------------------------- */
+.more {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-12);
+}
+
+.more__sum {
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  font-size: var(--fs-sm);
+  letter-spacing: .1em;
+  color: var(--dim-txt);
+  cursor: pointer;
+  list-style: none;
+  transition: color var(--t-fast) var(--ease);
+}
+.more__sum::-webkit-details-marker { display: none; }
+.more__sum::before {
+  content: "+";
+  color: var(--neon-cyan);
+  font-size: 1.1em;
+}
+.more[open] .more__sum::before { content: "−"; }
+.more__sum:hover { color: var(--neon-cyan); }
+
+.more__body { padding-top: var(--sp-2); }
+
+.dots { display: grid; gap: .55rem; }
+.dots li {
+  position: relative;
+  padding-left: 1.35em;
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+.dots li::before {
+  content: ">";
+  position: absolute;
+  left: 0;
+  color: var(--neon-magenta);
+}
+
+
+/* ---------------------------------------------------------------------------
+   技能标签
+   --------------------------------------------------------------------------- */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: var(--sp-3);
+}
+.tag {
+  padding: .18em .6em;
+  font-size: var(--fs-xs);
+  letter-spacing: .1em;
+  color: var(--dim-txt);
+  border: 1px solid var(--v-30);
+  background: var(--v-14);
+}
+
+
+/* ---------------------------------------------------------------------------
+   键盘按键
+   --------------------------------------------------------------------------- */
+.kbd {
+  display: inline-block;
+  padding: .05em .45em;
+  border: 1px solid var(--c-34);
+  border-bottom-width: 2px;
+  background: var(--ink-2);
+  color: var(--neon-cyan);
+  font-size: .95em;
+}
+
+
+/* ---------------------------------------------------------------------------
+   提示条
+   --------------------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bezel) + 1.6rem);
+  z-index: var(--z-toast);
+  padding: .5em 1.15em;
+  background: var(--neon-cyan);
+  color: var(--void);
+  font-family: var(--f-term);
+  font-size: var(--fs-term);
+  letter-spacing: .1em;
+  box-shadow: var(--glow);
+  opacity: 0;
+  transform: translate(-50%, 160%);
+  transition: opacity var(--t-mid) var(--ease), transform var(--t-mid) var(--ease);
+  pointer-events: none;
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+.toast:empty { display: none; }
+
+
+/* ---------------------------------------------------------------------------
+   Glitch 故障文字
+   常态下两个伪元素完全透明，所以观感不受影响；
+   只有 js/glitch.js 加上 .is-on 时才爆发 300ms
+   --------------------------------------------------------------------------- */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: clip-path, transform;
+}
+.glitch::before { color: var(--neon-magenta); }
+.glitch::after  { color: var(--neon-cyan); }
+
+.glitch.is-on::before,
+.glitch.is-on::after { opacity: .95; }
+
+.glitch.is-on            { animation: glitch-shift 320ms steps(2, end) 1; }
+.glitch.is-on::before    { animation: glitch-a 320ms steps(3, end) 1; }
+.glitch.is-on::after     { animation: glitch-b 320ms steps(3, end) 1; }
+
+@keyframes glitch-shift {
+  0%, 100% { transform: none; }
+  25%      { transform: translateX(-1px); }
+  50%      { transform: translateX(1px); }
+}
+
+/* 用 clip-path 切片 + 位移，做出"信号撕裂"的错位感 */
+@keyframes glitch-a {
+  0%   { clip-path: inset(0 0 0 0);       transform: translate(-3px, -2px); }
+  32%  { clip-path: inset(38% 0 42% 0);   transform: translate(-7px, 1px); }
+  64%  { clip-path: inset(72% 0 12% 0);   transform: translate(-2px, -1px); }
+  100% { clip-path: inset(0 0 0 0);       transform: none; }
+}
+
+@keyframes glitch-b {
+  0%   { clip-path: inset(0 0 0 0);       transform: translate(3px, 2px); }
+  32%  { clip-path: inset(20% 0 60% 0);   transform: translate(7px, -1px); }
+  64%  { clip-path: inset(58% 0 26% 0);   transform: translate(2px, 1px); }
+  100% { clip-path: inset(0 0 0 0);       transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch.is-on,
+  .glitch.is-on::before,
+  .glitch.is-on::after { animation: none; }
+  .glitch.is-on::before,
+  .glitch.is-on::after { opacity: 0; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   终端浮层
+   --------------------------------------------------------------------------- */
+.term {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-term);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(.75rem, 3vw, 2rem);
+  background: rgba(5, 3, 10, .74);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.term[hidden] { display: none; }
+
+.term__win {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(58rem, 100%);
+  height: min(34rem, 84svh);
+  background: rgba(9, 4, 18, .97);
+  border: 1px solid var(--c-34);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, .85),
+    0 0 55px rgba(0, 240, 255, .16),
+    0 26px 70px rgba(0, 0, 0, .75);
+  animation: term-in 200ms steps(5, end);
+}
+
+.term__win::before,
+.term__win::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--neon-magenta);
+}
+.term__win::before { top: -1px; left: -1px;  border-right: 0; border-bottom: 0; }
+.term__win::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+@keyframes term-in {
+  from { opacity: 0; transform: translateY(5px) scaleY(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+.term__bar {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex: none;
+  padding: .5rem .75rem;
+  border-bottom: 1px solid var(--c-20);
+  background-image: linear-gradient(to bottom, rgba(29, 16, 56, .92), rgba(13, 5, 24, .92));
+}
+
+.term__dots { display: flex; gap: 5px; flex: none; }
+.term__dots i { display: block; width: 8px; height: 8px; background: var(--dim-2); }
+.term__dots i:nth-child(1) { background: var(--neon-magenta); }
+.term__dots i:nth-child(2) { background: var(--amber); }
+.term__dots i:nth-child(3) { background: var(--neon-cyan); }
+
+.term__title {
+  margin-right: auto;
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
+  color: var(--dim-txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.term__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border: 1px solid var(--c-20);
+  color: var(--dim-txt);
+  font-size: var(--fs-xs);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.term__close:hover,
+.term__close:focus-visible {
+  color: var(--void);
+  background: var(--neon-magenta);
+  border-color: var(--neon-magenta);
+}
+
+.term__body {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  flex: 1;
+  min-height: 0;
+  padding: .9rem;
+}
+
+.term__out {
+  display: grid;
+  gap: .1rem;
+  align-content: start;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: var(--fs-term);
+  line-height: 1.5;
+  overscroll-behavior: contain;
+}
+
+.term__line      { white-space: pre-wrap; word-break: break-word; }
+.term__line--in  { color: var(--phosphor); }
+.term__line--out { color: var(--phosphor-dim); }
+.term__line--ok  { color: var(--neon-cyan); }
+.term__line--err { color: var(--neon-magenta); }
+.term__line--dim { color: var(--dim-txt); }
+.term__line--kpi { color: var(--amber); text-shadow: var(--glow-amber); }
+
+.term__form {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex: none;
+  padding-top: .55rem;
+  border-top: 1px solid var(--c-12);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+/* 可见的焦点指示（输入框本身去掉了外框） */
+.term__form:focus-within {
+  border-top-color: var(--neon-cyan);
+  box-shadow: 0 -1px 0 var(--neon-cyan);
+}
+
+.term__prompt {
+  flex: none;
+  font-size: var(--fs-term);
+  color: var(--neon-cyan);
+}
+
+.term__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  font-size: var(--fs-term);
+  color: var(--phosphor);
+  caret-color: var(--neon-cyan);
+}
+/* 终端里的输入框要保留文本光标，别被自定义光标吃掉 */
+.term__input { cursor: text; }
+
+.term__help {
+  flex: none;
+  font-size: var(--fs-xs);
+  color: var(--dim);
+}
+
+
+/* ---------------------------------------------------------------------------
+   锁滚动（终端 或 开机序列 打开时）
+   --------------------------------------------------------------------------- */
+html.is-locked,
+html.is-locked body {
+  overflow: hidden;
+}
+
+
+/* ---------------------------------------------------------------------------
+   像素准星光标
+   只在 html.has-pixel-cursor 时接管原生光标（由 js/cursor.js 决定加不加这个类）
+   做得像一个瞄准准星，而不是通用的箭头或圆点
+   --------------------------------------------------------------------------- */
+html.has-pixel-cursor,
+html.has-pixel-cursor * { cursor: none; }
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 200;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms steps(3, end);
+  will-change: transform;
+}
+.cursor.is-visible { opacity: 1; }
+
+.cursor::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, .95);
+}
+
+.cursor i {
+  position: absolute;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 5px rgba(0, 240, 255, .8);
+}
+.cursor i:nth-child(1) { left: 50%; top: 0;    width: 1px; height: 6px; margin-left: -.5px; }
+.cursor i:nth-child(2) { left: 50%; bottom: 0; width: 1px; height: 6px; margin-left: -.5px; }
+.cursor i:nth-child(3) { top: 50%; left: 0;    height: 1px; width: 6px; margin-top: -.5px; }
+.cursor i:nth-child(4) { top: 50%; right: 0;   height: 1px; width: 6px; margin-top: -.5px; }
+
+.cursor-trail {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 199;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, .8);
+  pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------------------------
+   打字机进行中的光标块
+   --------------------------------------------------------------------------- */
+.is-typing::after {
+  content: "";
+  display: inline-block;
+  width: .45em;
+  height: 1em;
+  margin-left: .1em;
+  vertical-align: -.14em;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, .8);
+  animation: caret-blink 1s steps(2, end) infinite;
+}
+
+@keyframes caret-blink {
+  0%, 55%   { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-typing::after { animation: none; }
+}

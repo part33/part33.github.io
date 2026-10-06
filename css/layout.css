@@ -1,0 +1,364 @@
+/* ============================================================================
+   layout.css — 骨架 / 顶部状态栏 / 左侧刻度轨道
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+   内容骨架
+   注意：CRT 外框（--bezel）会盖住窗口最外 12~14px，
+   所以所有内容都必须从这个安全区之内开始。
+   --------------------------------------------------------------------------- */
+main {
+  position: relative;
+  z-index: var(--z-content);
+  padding-top: calc(var(--bezel) + var(--hud-h));
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--pad-inline);
+}
+
+.sect {
+  position: relative;
+  padding-block: var(--sect-y);
+  /* 锚点跳转时给固定的 HUD 留出高度，否则标题会被压住 */
+  scroll-margin-top: calc(var(--bezel) + var(--hud-h) + .5rem);
+}
+
+.sect--last {
+  padding-bottom: var(--sp-5);
+}
+
+
+/* ===========================================================================
+   顶部状态栏
+   =========================================================================== */
+.hud {
+  position: fixed;
+  top: var(--bezel);
+  left: var(--bezel);
+  right: var(--bezel);
+  z-index: var(--z-hud);
+  height: var(--hud-h);
+
+  display: flex;
+  align-items: center;
+  gap: clamp(.5rem, 1.6vw, 1.25rem);
+  padding-inline: clamp(.6rem, 1.8vw, 1.1rem);
+
+  background: linear-gradient(to bottom, rgba(13, 5, 24, .97), rgba(13, 5, 24, .90));
+  border-bottom: 1px solid var(--c-20);
+  border-radius: var(--bezel-radius) var(--bezel-radius) 0 0;
+}
+
+/* ---- 品牌 ---- */
+.hud__brand {
+  display: flex;
+  align-items: center;
+  gap: .5em;
+  flex: none;
+  color: var(--phosphor);
+  transition: color var(--t-fast) var(--ease);
+}
+.hud__brand:hover { color: var(--neon-cyan); }
+
+.hud__logo {
+  font-size: 1em;
+  color: var(--neon-cyan);
+  text-shadow: var(--glow);
+  animation: hud-pulse 3.4s steps(2, end) infinite;
+}
+
+@keyframes hud-pulse {
+  0%, 88%  { opacity: 1; }
+  90%      { opacity: .35; }
+  92%, 100%{ opacity: 1; }
+}
+
+.hud__name { line-height: 1; }
+
+/* ---- 导航 ---- */
+.hud__nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(.5rem, 1.4vw, 1.1rem);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* 边缘淡出，暗示还可以横向滚动 */
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+}
+.hud__nav::-webkit-scrollbar { display: none; }
+
+.hud__nav a {
+  flex: none;
+  font-family: var(--f-term);
+  font-size: var(--fs-xs);
+  letter-spacing: .1em;
+  color: var(--dim-txt);
+  padding: .35em .1em;
+  position: relative;
+  transition: color var(--t-fast) var(--ease);
+}
+.hud__nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: .1em;
+  height: 1px;
+  background: var(--neon-cyan);
+  box-shadow: var(--glow);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--t-mid) var(--ease);
+}
+.hud__nav a:hover,
+.hud__nav a:focus-visible { color: var(--phosphor); }
+.hud__nav a:hover::after,
+.hud__nav a:focus-visible::after { transform: scaleX(1); }
+
+/* ---- 时钟 / 信号 ---- */
+.hud__meta {
+  display: flex;
+  align-items: center;
+  gap: .55em;
+  flex: none;
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--dim-txt);
+}
+
+.hud__clock {
+  font-size: var(--fs-xs);
+  color: var(--neon-cyan);
+  text-shadow: var(--glow);
+  letter-spacing: .06em;
+}
+
+.hud__tz { opacity: .6; }
+
+.hud__signal { display: flex; align-items: flex-end; gap: 2px; height: 10px; }
+.hud__signal i {
+  display: block;
+  width: 3px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 4px rgba(0, 240, 255, .7);
+  animation: sig 2.6s steps(3, end) infinite;
+}
+.hud__signal i:nth-child(1) { height: 4px;  animation-delay: 0s; }
+.hud__signal i:nth-child(2) { height: 7px;  animation-delay: .18s; }
+.hud__signal i:nth-child(3) { height: 10px; animation-delay: .36s; }
+
+@keyframes sig {
+  0%, 62%   { opacity: 1; }
+  64%       { opacity: .3; }
+  66%, 100% { opacity: 1; }
+}
+
+/* ---- 工具按钮 ---- */
+.hud__tools {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex: none;
+}
+
+.tool {
+  display: flex;
+  align-items: center;
+  gap: .45em;
+  padding: .3em .55em;
+  border: 1px solid var(--c-20);
+  background: rgba(21, 10, 43, .7);
+  font-family: var(--f-term);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
+  color: var(--dim-txt);
+  transition: color var(--t-fast) var(--ease),
+              border-color var(--t-fast) var(--ease),
+              background var(--t-fast) var(--ease);
+}
+.tool__ico { color: var(--neon-cyan); }
+.tool:hover,
+.tool:focus-visible {
+  color: var(--phosphor);
+  border-color: var(--c-55);
+  background: var(--ink-3);
+}
+.tool[data-state="busy"] .tool__ico { color: var(--neon-magenta); }
+
+/* ---- 滚动进度 ---- */
+.hud__prog {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  overflow: hidden;
+  background: var(--v-14);
+}
+
+.hud__prog-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background-image: linear-gradient(to right, var(--neon-violet), var(--neon-cyan) 62%, var(--phosphor));
+  box-shadow: 0 0 8px rgba(0, 240, 255, .6);
+}
+
+/* 像素分段：作为轨道最后一个子元素绘制，所以它盖在填充条之上 */
+.hud__prog::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 3px,
+    var(--void) 3px 4px
+  );
+  opacity: .9;
+}
+
+
+/* ===========================================================================
+   左侧刻度轨道 —— 滚动到哪一节，哪一格点亮（纯装饰，不是导航）
+   真实导航在 HUD 里，所以这里 aria-hidden 是诚实的
+   =========================================================================== */
+.rail {
+  position: fixed;
+  left: calc(var(--bezel) + .45rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-rail);
+  pointer-events: none;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding-block: var(--sp-2);
+}
+
+.rail__line {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--c-34) 10%,
+    var(--c-34) 90%,
+    transparent
+  );
+}
+
+.rail__tick { position: relative; display: flex; align-items: center; }
+
+.rail__dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  background: var(--dim);
+  transition: background var(--t-mid) var(--ease),
+              box-shadow var(--t-mid) var(--ease),
+              transform var(--t-mid) var(--ease);
+}
+
+.rail__label {
+  position: absolute;
+  left: calc(100% + 11px);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
+  color: var(--neon-cyan);
+  text-shadow: var(--glow);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: opacity var(--t-mid) var(--ease), transform var(--t-mid) var(--ease);
+}
+
+.rail__tick.is-on .rail__dot {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, .95), 0 0 15px rgba(0, 240, 255, .5);
+  transform: scale(1.35);
+}
+
+.rail__tick.is-on .rail__label {
+  opacity: 1;
+  transform: none;
+}
+
+
+/* ===========================================================================
+   开机序列浮层
+   =========================================================================== */
+.boot {
+  position: fixed;
+  inset: var(--bezel);
+  z-index: var(--z-boot);
+  padding: clamp(1.2rem, 5vw, 3rem);
+  background: var(--void);
+  border-radius: var(--bezel-radius);
+  overflow: hidden;
+  display: none;   /* 只在 JS 就绪后才出现，避免禁用 JS 时挡住内容 */
+}
+
+.js .boot { display: flex; }
+.js .boot[hidden] { display: none; }
+
+/* <head> 里的内联脚本判定"本次会话已看过开机序列"时会加上 no-boot，
+   这样从第一帧起就不显示它，不会闪一下 */
+.js.no-boot .boot { display: none; }
+
+.boot__line { display: block; }
+
+.boot__log {
+  margin: 0;
+  font-size: var(--fs-term);
+  line-height: 1.65;
+  color: var(--phosphor);
+  text-shadow: var(--glow);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.boot__log .boot__ok   { color: var(--neon-cyan); }
+.boot__log .boot__warn { color: var(--amber); }
+.boot__log .boot__cur  { color: var(--phosphor); }
+
+.boot__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(1rem, 4vw, 2rem);
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  animation: hint-blink 1.6s steps(2, end) infinite;
+}
+
+@keyframes hint-blink {
+  0%, 55%   { opacity: 1; }
+  56%, 100% { opacity: .25; }
+}
+
+/* 开机完成：整屏闪一下再消失（经典 CRT 关机的收束感） */
+.boot.is-done {
+  animation: boot-off 420ms steps(6, end) forwards;
+}
+
+@keyframes boot-off {
+  0%   { opacity: 1; filter: brightness(1); }
+  18%  { opacity: 1; filter: brightness(3.2); }
+  34%  { opacity: 1; filter: brightness(.4); }
+  52%  { opacity: 1; filter: brightness(2); }
+  100% { opacity: 0; filter: brightness(.2); }
+}

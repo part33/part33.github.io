@@ -1,0 +1,648 @@
+/* ============================================================================
+   sections.css — 各分节专属样式
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+   分节标题组
+   中文标题在上，英文名在下作为"翻译"而不是眉标
+   --------------------------------------------------------------------------- */
+.sect__head {
+  max-width: 56rem;
+  margin-bottom: var(--sp-5);
+}
+
+.sect__title {
+  font-size: var(--fs-h2);
+  letter-spacing: .03em;
+  color: var(--phosphor);
+  text-shadow:
+    0 0 3px rgba(201, 255, 232, .55),
+    0 0 16px rgba(0, 240, 255, .38),
+    0 0 50px rgba(0, 240, 255, .16);
+}
+
+.sect__en {
+  margin-top: .7rem;
+  letter-spacing: .3em;
+  color: var(--neon-cyan);
+  opacity: .7;
+}
+
+.sect__note {
+  max-width: 46rem;
+  margin-top: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--dim-txt);
+}
+
+
+/* ===========================================================================
+   HERO
+   =========================================================================== */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: min(92svh, 60rem);
+  padding-block: clamp(2.5rem, 7vw, 5.5rem);
+  overflow: hidden;
+  /* 锚点跳回首页时也要给固定 HUD 留位 */
+  scroll-margin-top: calc(var(--bezel) + var(--hud-h));
+}
+
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  /* 文案只占左半边，右边留给太阳。
+     这条是硬约束：没有它，正文会跑到高亮的太阳上，可读性直接崩掉。 */
+  max-width: 44rem;
+}
+
+/* ---- 星空：单个元素承载 18 层 radial-gradient，零额外请求 ---- */
+.hero__stars {
+  position: absolute;
+  inset: 0;
+  opacity: .55;
+  background-image:
+    radial-gradient(circle at 7% 12%,  var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 18% 26%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 27% 8%,  var(--neon-cyan)   0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 34% 30%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 43% 15%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 52% 33%, var(--neon-magenta)0 1px, transparent 1.6px),
+    radial-gradient(circle at 61% 9%,  var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 69% 27%, var(--phosphor)    0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 76% 14%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 86% 31%, var(--neon-cyan)   0 1px, transparent 1.6px),
+    radial-gradient(circle at 93% 11%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 12% 40%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 38% 44%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 57% 47%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 79% 43%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 95% 45%, var(--phosphor)    0 1px, transparent 1.6px),
+    radial-gradient(circle at 23% 51%, var(--neon-cyan)   0 1px, transparent 1.6px),
+    radial-gradient(circle at 66% 52%, var(--phosphor)    0 1px, transparent 1.6px);
+}
+
+/* ---- 像素太阳：border-radius 裁出圆，mask 切出横向条纹 ----
+   刻意偏右停靠，与左栏文案错开，不互相打架 */
+.hero__sun {
+  position: absolute;
+  left: 71%;
+  top: 56%;
+  width: min(46vw, 25rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -74%);
+  border-radius: 50%;
+  background-image: linear-gradient(
+    to bottom,
+    var(--phosphor)      0%,
+    var(--neon-cyan)    24%,
+    var(--neon-violet)  58%,
+    var(--neon-magenta) 82%,
+    var(--amber)       100%
+  );
+  /* 上半实心，下半被横向切条 —— 经典落日 */
+  -webkit-mask-image: linear-gradient(to bottom,
+    #000 0 40%,
+    transparent 40% 44%, #000 44% 52%,
+    transparent 52% 56%, #000 56% 64%,
+    transparent 64% 68%, #000 68% 78%,
+    transparent 78% 82%, #000 82% 94%,
+    transparent 94% 98%, #000 98% 100%);
+  mask-image: linear-gradient(to bottom,
+    #000 0 40%,
+    transparent 40% 44%, #000 44% 52%,
+    transparent 52% 56%, #000 56% 64%,
+    transparent 64% 68%, #000 68% 78%,
+    transparent 78% 82%, #000 82% 94%,
+    transparent 94% 98%, #000 98% 100%);
+  filter:
+    drop-shadow(0 0 26px rgba(255, 46, 136, .40))
+    drop-shadow(0 0 70px rgba(0, 240, 255, .20));
+  opacity: .68;
+}
+
+/* ---- 地平线 ----
+   82% 这个位置是量出来的：文案块底边约在 70% 处，
+   地平线必须落在它下面，否则网格的横线会横穿正文 */
+.hero__horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 82%;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--neon-cyan)   20%,
+    var(--phosphor)    50%,
+    var(--neon-cyan)   80%,
+    transparent
+  );
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, .75),
+    0 0 42px rgba(0, 240, 255, .32);
+  opacity: .85;
+}
+
+/* ---- 透视网格地面 ----
+   绕元素上边缘旋转，上边缘即灭点所在的地平线。
+   透视距 520px 与 400px 的进深、72deg 的倾角是配套的：
+   地面在屏幕上正好铺开约 460px，再远就开始"翻出去"，
+   mask 负责把最前景淡掉，避免出现硬边。 */
+.hero__grid {
+  position: absolute;
+  left: -70%;
+  right: -70%;
+  top: 82%;
+  height: 400px;
+  transform-origin: 50% 0;
+  transform: perspective(520px) rotateX(72deg);
+  background-image:
+    repeating-linear-gradient(to right,  var(--c-34) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(to bottom, var(--c-34) 0 1px, transparent 1px 72px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+  opacity: .5;
+}
+/* ---- 地平线附近的辉光雾：与太阳同侧同心 ---- */
+.hero__haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  height: 40%;
+  background-image: radial-gradient(
+    40% 100% at 71% 100%,
+    rgba(255, 46, 136, .20),
+    rgba(176, 38, 255, .10) 46%,
+    transparent 76%
+  );
+}
+
+/* ---- 文案 ---- */
+.hero__kick {
+  display: flex;
+  align-items: center;
+  gap: .55em;
+  margin-bottom: var(--sp-4);
+  font-size: var(--fs-sm);
+  letter-spacing: .12em;
+  color: var(--dim-txt);
+}
+.hero__blink {
+  color: var(--neon-cyan);
+  animation: hud-pulse 3.4s steps(2, end) infinite;
+}
+
+.hero__title {
+  font-size: var(--fs-hero);
+  line-height: .98;
+  letter-spacing: .06em;
+  color: var(--phosphor);
+  text-shadow:
+    0 0 4px rgba(201, 255, 232, .60),
+    0 0 18px rgba(0, 240, 255, .45),
+    0 0 62px rgba(0, 240, 255, .24);
+}
+
+.hero__handle {
+  margin-top: .7rem;
+  letter-spacing: .38em;
+  color: var(--neon-cyan);
+  opacity: .85;
+}
+
+.hero__role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .4em 1.1em;
+  margin-top: var(--sp-4);
+}
+.hero__role-cn {
+  font-size: var(--fs-lead);
+  color: var(--phosphor);
+  padding-bottom: .12em;
+  border-bottom: 1px solid var(--c-34);
+}
+.hero__role-en {
+  letter-spacing: .24em;
+  color: var(--neon-magenta);
+}
+
+.h/* 15em（相对自身字号）≈ 能容下"把模型能力，翻译成用户价值。"这一整句，
+     不换行才有一句话的冲击力 */
+  max-width: 15em
+  max-width: 24ch;
+  min-height: 1.4em;
+  margin-top: var(--sp-3);
+  font-size: clamp(1.25rem, .85rem + 2.3vw, 1.95rem);
+  line-height: 1.5;
+  color: var(--phosphor);
+  text-shadow:
+    0 0 3px rgba(201, 255, 232, .55),
+    0 0 16px rgba(0, 240, 255, .34);
+}
+
+.hero__intro {
+  max-width: 46ch;
+  margin-top: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+  margin-top: var(--sp-4);
+}
+
+.hero__hint {
+  display: flex;
+  align-items: center;
+  gap: .7em;
+  margin-top: var(--sp-5);
+  font-size: var(--fs-xs);
+  letter-spacing: .24em;
+  color: var(--dim);
+}
+.hero__hint-bar {
+  display: block;
+  width: 1.7em;
+  height: 7px;
+  background: var(--c-34);
+  animation: hint-slide 2.4s steps(4, end) infinite;
+}
+@keyframes hint-slide {
+  0%, 100% { opacity: .3; transform: translateY(-1px); }
+  50%      { opacity: 1;  transform: translateY(2px); }
+}
+
+
+/* ===========================================================================
+   ABOUT
+   =========================================================================== */
+.about {
+  display: grid;
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+
+/* ===========================================================================
+   CAPABILITY MATRIX
+   =========================================================================== */
+.mtx { display: grid; }
+
+.mtx__row {
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--c-12);
+}
+.mtx__row:last-child { border-bottom: 0; padding-bottom: 0; }
+.mtx__row:first-child { padding-top: 0; }
+
+.mtx__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .3rem var(--sp-3);
+}
+
+.mtx__name {
+  font-size: var(--fs-h3);
+  color: var(--phosphor);
+}
+
+.mtx__score {
+  display: flex;
+  align-items: center;
+  gap: .7em;
+  flex: none;
+}
+
+/* 无 JS 时这里渲染的是字面的 ▓▓▓▓░；
+   JS 就绪后会换成 .bar 方块并逐块点亮 */
+.mtx__bars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 1em;
+  font-size: var(--fs-term);
+  color: var(--neon-cyan);
+  letter-spacing: .06em;
+  text-shadow: var(--glow);
+}
+
+.mtx__bars .bar {
+  display: block;
+  width: .5em;
+  height: 100%;
+  background: var(--dim-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .65);
+}
+.mtx__bars .bar--on {
+  background: var(--neon-cyan);
+  box-shadow:
+    0 0 5px rgba(0, 240, 255, .85),
+    0 0 13px rgba(0, 240, 255, .42);
+}
+
+.mtx__num {
+  font-size: var(--fs-xs);
+  color: var(--dim-txt);
+  font-variant-numeric: tabular-nums;
+}
+
+.mtx__note {
+  max-width: 60ch;
+  margin-top: .45rem;
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+
+/* ===========================================================================
+   CAREER
+   =========================================================================== */
+.tl { display: grid; gap: var(--sp-5); }
+
+.tl__item {
+  position: relative;
+  padding-left: clamp(1.6rem, 4vw, 2.5rem);
+}
+
+/* 竖线（最后一项不画） */
+.tl__item::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1.5em;
+  bottom: calc(-1 * var(--sp-5));
+  width: 1px;
+  background-image: linear-gradient(to bottom, var(--c-34), transparent);
+}
+.tl__item:last-child::before { display: none; }
+
+.tl__node {
+  position: absolute;
+  left: 0;
+  top: .55em;
+  width: 9px;
+  height: 9px;
+  background: var(--neon-cyan);
+  box-shadow:
+    0 0 6px rgba(0, 240, 255, .9),
+    0 0 16px rgba(0, 240, 255, .45);
+}
+.tl__item--edu .tl__node {
+  background: var(--dim);
+  box-shadow: none;
+}
+
+.tl__when {
+  font-size: var(--fs-sm);
+  letter-spacing: .1em;
+  color: var(--amber);
+  text-shadow: var(--glow-amber);
+}
+
+.tl__org {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .15em .9em;
+  margin-top: .35rem;
+  font-size: var(--fs-h3);
+  color: var(--phosphor);
+}
+
+.tl__role {
+  font-size: var(--fs-sm);
+  color: var(--neon-cyan);
+}
+
+.tl__sum {
+  max-width: 54ch;
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+
+/* ===========================================================================
+   WORK — 项目卡片
+   =========================================================================== */
+.cards {
+  display: grid;
+  gap: var(--sp-4);
+  /* 26rem 下限：保证"关键决策"那段中文不会窄到每行只有十几个字 */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  padding: var(--sp-4);
+  border: 1px solid var(--c-20);
+  background-image: linear-gradient(to bottom, rgba(21, 10, 43, .52), rgba(13, 5, 24, .76));
+  transition: border-color var(--t-mid) var(--ease), box-shadow var(--t-mid) var(--ease);
+}
+
+/* 悬停时一道扫描带自上而下扫过卡片 */
+.card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34%;
+  background-image: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 240, 255, .07) 60%,
+    transparent
+  );
+  transform: translateY(-150%);
+  transition: transform 640ms var(--ease);
+  pointer-events: none;
+}
+.card:hover::after,
+.card:focus-within::after { transform: translateY(330%); }
+
+.card:hover,
+.card:focus-within {
+  border-color: var(--c-55);
+  box-shadow: 0 0 0 1px var(--c-12), 0 0 34px rgba(0, 240, 255, .12);
+}
+
+.card__code {
+  letter-spacing: .32em;
+  color: var(--neon-magenta);
+  opacity: .9;
+}
+
+.card__title {
+  margin-top: .7rem;
+  font-size: var(--fs-h3);
+  color: var(--phosphor);
+}
+
+.card__desc {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+.card__kv {
+  display: grid;
+  gap: .75rem;
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--c-12);
+}
+.card__kv-row { display: grid; gap: .1rem; }
+.card__kv-row dt {
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  color: var(--dim-txt);
+}
+.card__kv-row dd {
+  font-size: var(--fs-sm);
+  color: var(--phosphor);
+}
+
+
+/* ===========================================================================
+   METHOD — 五道关
+   内容本身就是有先后的流程，所以这里用序号是承载信息的，不是装饰
+   =========================================================================== */
+.gates {
+  display: grid;
+  gap: 1px;
+  border-block: 1px solid var(--c-12);
+  background: var(--c-12);
+}
+
+.gate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .25rem 1.1rem;
+  padding: var(--sp-4) var(--sp-3);
+  background: var(--ink);
+}
+
+.gate__idx {
+  grid-row: 1 / span 3;
+  font-size: clamp(1.35rem, 1rem + 1.8vw, 2.1rem);
+  line-height: 1;
+  color: var(--neon-violet);
+  opacity: .7;
+}
+
+.gate__name {
+  font-size: var(--fs-h3);
+  color: var(--phosphor);
+}
+
+.gate__desc {
+  max-width: 60ch;
+  margin-top: .2rem;
+  font-size: var(--fs-sm);
+  color: var(--phosphor-dim);
+}
+
+.gate__out {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .2em .8em;
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-12);
+  font-size: var(--fs-sm);
+  color: var(--dim-txt);
+}
+.gate__out-k {
+  flex: none;
+  font-size: var(--fs-xs);
+  letter-spacing: .14em;
+  color: var(--amber);
+}
+
+
+/* ===========================================================================
+   UPLINK
+   =========================================================================== */
+.links {
+  display: grid;
+  gap: 1px;
+  border-block: 1px solid var(--c-12);
+  background: var(--c-12);
+}
+
+.link {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--ink);
+}
+
+.link__k {
+  font-size: var(--fs-xs);
+  letter-spacing: .16em;
+  color: var(--dim-txt);
+}
+
+.link__v {
+  font-size: var(--fs-lead);
+  color: var(--phosphor);
+  word-break: break-all;
+  transition: color var(--t-fast) var(--ease), text-shadow var(--t-fast) var(--ease);
+}
+a.link__v:hover,
+a.link__v:focus-visible {
+  color: var(--neon-cyan);
+  text-shadow: var(--glow);
+}
+
+.copy {
+  padding: .25em .75em;
+  border: 1px solid var(--v-30);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  color: var(--dim-txt);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.copy:hover,
+.copy:focus-visible {
+  color: var(--void);
+  background: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  text-shadow: none;
+}
+
+
+/* ===========================================================================
+   页脚
+   =========================================================================== */
+.foot {
+  display: grid;
+  gap: .4rem;
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--c-12);
+  font-size: var(--fs-xs);
+}

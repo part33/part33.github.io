@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js" data-fx="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>林砚 LIN YAN — AI 产品经理</title>
+<meta name="description" content="林砚，AI 产品经理。把模型能力，翻译成用户价值。企业级 Agent、RAG 检索与 LLM 应用的产品实践与项目复盘。">
+<meta name="author" content="林砚">
+<meta name="theme-color" content="#05030a">
+<meta name="color-scheme" content="dark">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+<!-- 中文像素字体自托管（完整简中字集，见 css/fonts.css 里的选型说明） -->
+<link rel="preload" href="assets/fonts/ark-pixel-zh-hans.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- 拉丁像素字（中文由上面的自托管字体负责，不需要 Google 上的日中字体） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/crt.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/responsive.css">
+
+<!-- 必须在 CSS 之前生效，否则会出现"JS 未就绪时闪一下"。
+     这里顺便定下两件事：
+     1) 效果强度 —— URL 参数 ?fx=off|low|full 优先，其次记 localStorage
+     2) 本次会话是否还要播开机序列 —— 播过就加 no-boot，从第一帧起就不显示 -->
+<script>
+(function (h) {
+  h.classList.remove('no-js');
+  h.classList.add('js');
+
+  var q = window.location.search;
+  var m = q.match(/[?&]fx=(full|low|off)(?:&|$)/);
+  var fx = m && m[1];
+
+  if (!fx) {
+    try { fx = localStorage.getItem('ly.fx'); } catch (e) {}
+  }
+  if (fx !== 'low' && fx !== 'off') fx = 'full';
+  h.setAttribute('data-fx', fx);
+
+  var forced = /[?&]boot=1(?:&|$)/.test(q);
+  if (!forced) {
+    var seen = false;
+    try { seen = sessionStorage.getItem('ly.booted') === '1'; } catch (e) {}
+    if (seen) h.classList.add('no-boot');
+  }
+})(document.documentElement);
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#hero">跳到主内容</a>
+
+<!-- ==========================================================================
+     开机序列（纯装饰，对读屏软件隐藏；点击或按键即可跳过）
+     ========================================================================== -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__log mono" id="boot-log"></div>
+  <p class="boot__hint mono">[ 点击或按任意键跳过 ]</p>
+</div>
+
+
+<!-- ==========================================================================
+     CRT 屏幕效果层 —— 全部 pointer-events:none，纯视觉叠加
+     ========================================================================== -->
+<div class="crt" id="crt" aria-hidden="true">
+  <div class="crt__scanlines"></div>
+  <div class="crt__grille"></div>
+  <div class="crt__sweep"></div>
+  <div class="crt__noise"></div>
+  <div class="crt__glare"></div>
+  <div class="crt__vignette"></div>
+</div>
+<div class="bezel" aria-hidden="true"></div>
+
+
+<!-- ==========================================================================
+     HUD —— 顶部状态栏
+     ========================================================================== -->
+<header class="hud">
+  <a class="hud__brand" href="#hero">
+    <span class="hud__logo" aria-hidden="true">◉</span>
+    <span class="arcade hud__name">LIN·YAN</span>
+  </a>
+
+  <nav class="hud__nav" aria-label="分区导航">
+    <a href="#about">ABOUT</a>
+    <a href="#capability">MATRIX</a>
+    <a href="#career">CAREER</a>
+    <a href="#work">WORK</a>
+    <a href="#method">METHOD</a>
+    <a href="#uplink">UPLINK</a>
+  </nav>
+
+  <div class="hud__meta">
+    <span class="hud__clock mono" id="clock">--:--:--</span>
+    <span class="hud__tz mono">UTC+8</span>
+    <span class="hud__signal" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>
+
+  <div class="hud__tools">
+    <button class="tool" id="fx-btn" type="button" aria-label="切换屏幕显示效果强度">
+      <span class="tool__ico" aria-hidden="true">▤</span>
+      <span class="tool__txt" id="fx-txt">CRT</span>
+    </button>
+    <button class="tool tool--term" id="term-btn" type="button" aria-describedby="term-key-hint">
+      <span class="tool__ico" aria-hidden="true">&gt;_</span>
+      <span class="tool__txt">TERMINAL</span>
+    </button>
+  </div>
+
+  <div class="hud__prog" aria-hidden="true"><span class="hud__prog-fill" id="prog"></span></div>
+</header>
+<p class="sr-only" id="term-key-hint">在任何位置按反引号键也可以打开终端</p>
+
+
+<!-- ==========================================================================
+     左侧刻度轨道 —— 当前"章节"的读数指示（纯装饰，导航在 HUD 里）
+     ========================================================================== -->
+<div class="rail" id="rail" aria-hidden="true">
+  <span class="rail__line"></span>
+  <span class="rail__tick" data-rail="hero"><span class="rail__dot"></span><span class="rail__label mono">whoami</span></span>
+  <span class="rail__tick" data-rail="about"><span class="rail__dot"></span><span class="rail__label mono">about</span></span>
+  <span class="rail__tick" data-rail="capability"><span class="rail__dot"></span><span class="rail__label mono">matrix</span></span>
+  <span class="rail__tick" data-rail="career"><span class="rail__dot"></span><span class="rail__label mono">career</span></span>
+  <span class="rail__tick" data-rail="work"><span class="rail__dot"></span><span class="rail__label mono">work</span></span>
+  <span class="rail__tick" data-rail="method"><span class="rail__dot"></span><span class="rail__label mono">method</span></span>
+  <span class="rail__tick" data-rail="uplink"><span class="rail__dot"></span><span class="rail__label mono">uplink</span></span>
+</div>
+
+
+<main id="main">
+
+<!-- ==========================================================================
+     01 · HERO
+     ========================================================================== -->
+<section class="hero" id="hero" aria-labelledby="hero-title">
+
+  <div class="hero__scene" aria-hidden="true">
+    <div class="hero__stars"></div>
+    <div class="hero__sun"></div>
+    <div class="hero__horizon"></div>
+    <div class="hero__grid"></div>
+    <div class="hero__haze"></div>
+  </div>
+
+  <div class="shell hero__inner">
+
+    <p class="hero__kick mono">
+      <span class="hero__blink" aria-hidden="true">◉</span>
+      UPLINK ESTABLISHED · SHANGHAI · UTC+8
+    </p>
+
+    <!-- ▼ 替换：你的名字。data-text 必须与文字内容完全一致，glitch 效果依赖它 -->
+    <h1 class="hero__title" id="hero-title">
+      <span class="glitch" data-text="林砚">林砚</span>
+    </h1>
+    <p class="arcade hero__handle" aria-hidden="true">LIN YAN</p>
+
+    <p class="hero__role">
+      <span class="hero__role-cn">AI 产品经理</span>
+      <span class="hero__role-en arcade">AI PRODUCT MANAGER</span>
+    </p>
+
+    <!-- ▼ 替换：一句话定位。data-type 决定打字机效果的内容，需与正文一致 -->
+    <p class="hero__tag" data-type="把模型能力，翻译成用户价值。">把模型能力，翻译成用户价值。</p>
+
+    <!-- ▼ 替换：两三句自我介绍，写你在做什么、相信什么 -->
+    <p class="hero__intro">
+      我做 AI 产品六年，主要在做企业级 Agent 和检索系统。
+      比起"模型能不能做到"，我更关心"这件事值不值得用模型做"——
+      以及做不到的那部分，该怎么诚实地告诉用户。
+    </p>
+
+    <div class="hero__cta">
+      <a class="btn btn--solid" href="#work">[ 查看作品 ]</a>
+      <button class="btn btn--ghost" id="hero-term" type="button">[ 打开终端 ]</button>
+    </div>
+
+    <p class="hero__hint mono" aria-hidden="true">
+      <span class="hero__hint-bar"></span> SCROLL
+    </p>
+
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     02 · ABOUT
+     ========================================================================== -->
+<section class="sect" id="about" aria-labelledby="about-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/about</span><span class="cmd__sign">$</span><span class="cmd__text">cat README.md</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="about-title">关于我</h2>
+      <p class="sect__en arcade" aria-hidden="true">ABOUT</p>
+    </header>
+
+    <div class="about">
+
+      <div class="about__prose prose reveal">
+        <!-- ▼ 替换：下面三段是你的自述，建议保持"一个观点 + 一个具体例子"的写法 -->
+        <p>
+          我做 AI 产品六年，踩过的坑比上线过的功能多。最深的体会是：
+          这一行最难的问题从来不是"模型能不能做到"，
+          而是"这件事值不值得用模型做"。
+        </p>
+        <p>
+          我的日常，是把一句模糊的业务诉求拆成三个变量——
+          模型当前的能力边界、我们真正拿得到的数据、用户愿意容忍的不完美。
+          然后在这三者之间找一个<strong>今天就能交付</strong>的解。
+        </p>
+        <p>
+          我不迷信端到端。一个规则能解决的问题就不上模型，
+          小模型能兜住的就不动用大模型。
+          好的 AI 产品应该像好的基础设施：用户感觉不到模型的存在，
+          只感觉到事情被办成了。
+        </p>
+      </div>
+
+      <aside class="about__panel panel reveal" aria-labelledby="status-title">
+        <h3 class="panel__title mono" id="status-title">STATUS</h3>
+        <dl class="kv">
+          <div class="kv__row">
+            <dt class="mono">现在在做</dt>
+            <dd>企业级 Agent 产品线</dd>
+          </div>
+          <div class="kv__row">
+            <dt class="mono">常驻</dt>
+            <dd>上海 · UTC+8</dd>
+          </div>
+          <div class="kv__row">
+            <dt class="mono">最近在读</dt>
+            <dd>Designing Machine Learning Systems</dd>
+          </div>
+          <div class="kv__row">
+            <dt class="mono">持续关注</dt>
+            <dd>Agent 评测基准 · 多模态推理成本</dd>
+          </div>
+          <div class="kv__row">
+            <dt class="mono">开放</dt>
+            <dd>行业交流 · 内部分享 · 合作</dd>
+          </div>
+        </dl>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     03 · CAPABILITY MATRIX
+     ========================================================================== -->
+<section class="sect" id="capability" aria-labelledby="cap-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/capability</span><span class="cmd__sign">$</span><span class="cmd__text">./matrix --all --verbose</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="cap-title">能力矩阵</h2>
+      <p class="sect__en arcade" aria-hidden="true">CAPABILITY MATRIX</p>
+      <p class="sect__note">
+        评分只代表我在真实项目里<em>交付过</em>的程度，不代表理论掌握度。
+        每一行都附上判断依据——这也是我评估自己团队的方式。
+      </p>
+    </header>
+
+    <ul class="mtx">
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">模型理解与能力边界</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="4" data-max="5">▓▓▓▓░</span>
+            <span class="mtx__num">4/5</span>
+            <span class="sr-only">满分 5 分，我 4 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">能在立项前就说清楚哪类需求会撞上上下文窗口和幻觉率的天花板。</p>
+      </li>
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">LLM 应用设计</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="5" data-max="5">▓▓▓▓▓</span>
+            <span class="mtx__num">5/5</span>
+            <span class="sr-only">满分 5 分，我 5 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">主导过 Prompt 编排、RAG 检索链路、多步 Agent 的完整落地，也负责过它们的翻车。</p>
+      </li>
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">评测与质量</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="4" data-max="5">▓▓▓▓░</span>
+            <span class="mtx__num">4/5</span>
+            <span class="sr-only">满分 5 分，我 4 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">从零搭过 800+ 条分层评测集，把红队测试和回归测试跑成固定流程。</p>
+      </li>
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">数据与指标</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="4" data-max="5">▓▓▓▓░</span>
+            <span class="mtx__num">4/5</span>
+            <span class="sr-only">满分 5 分，我 4 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">定义过 AI 功能的北极星指标，把"感觉变好了"翻译成能追踪的曲线。</p>
+      </li>
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">需求与优先级</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="5" data-max="5">▓▓▓▓▓</span>
+            <span class="mtx__num">5/5</span>
+            <span class="sr-only">满分 5 分，我 5 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">习惯用 RICE 排序，也敢砍掉那个看起来最酷、但留不住用户的功能。</p>
+      </li>
+
+      <li class="mtx__row reveal">
+        <div class="mtx__top">
+          <h3 class="mtx__name">跨团队推进</h3>
+          <p class="mtx__score mono">
+            <span class="mtx__bars" data-value="4" data-max="5">▓▓▓▓░</span>
+            <span class="mtx__num">4/5</span>
+            <span class="sr-only">满分 5 分，我 4 分</span>
+          </p>
+        </div>
+        <p class="mtx__note">在算法、工程、设计、业务之间做翻译，把争论收敛成一次可验证的实验。</p>
+      </li>
+
+    </ul>
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     04 · CAREER
+     ========================================================================== -->
+<section class="sect" id="career" aria-labelledby="career-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/career</span><span class="cmd__sign">$</span><span class="cmd__text">tail -f career.log</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="career-title">职业路径</h2>
+      <p class="sect__en arcade" aria-hidden="true">CAREER LOG</p>
+    </header>
+
+    <ol class="tl">
+
+      <!-- ▼ 替换：工作经历。公司名建议保留"某头部…"的写法，避免前雇主信息问题 -->
+      <li class="tl__item reveal">
+        <div class="tl__node" aria-hidden="true"></div>
+        <div class="tl__body">
+          <p class="tl__when mono">2023.06 — NOW</p>
+          <h3 class="tl__org">某头部大模型公司<span class="tl__role">高级 AI 产品经理</span></h3>
+          <p class="tl__sum">
+            负责企业级 Agent 产品线，从 0 到 1 搭建面向 B 端客户的检索问答与任务自动化产品。
+          </p>
+          <ul class="res">
+            <li class="res__item"><span class="kpi mono">61% → 84%</span>任务一次完成率</li>
+            <li class="res__item"><span class="kpi mono">400+</span>上线 9 个月的企业客户数</li>
+            <li class="res__item"><span class="kpi mono">68% → 95%</span>答案可溯源率</li>
+          </ul>
+          <details class="more">
+            <summary class="more__sum mono">展开细节</summary>
+            <div class="more__body">
+              <ul class="dots">
+                <li>把评测集从 200 条扩到 800+ 条，分正常、边界、对抗三层，每次发版必跑回归。</li>
+                <li>推动检索架构从纯向量改为「结构化索引 + 混合检索」，先牺牲一点召回，换回答案可追溯。</li>
+                <li>写了一份《能力边界说明书》，把模型做不到的事同步进 PRD 和前端文案，售前投诉下降 44%。</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </li>
+
+      <li class="tl__item reveal">
+        <div class="tl__node" aria-hidden="true"></div>
+        <div class="tl__body">
+          <p class="tl__when mono">2021.03 — 2023.05</p>
+          <h3 class="tl__org">某头部互联网公司<span class="tl__role">AI 产品经理</span></h3>
+          <p class="tl__sum">
+            负责智能客服对话系统重构，日均处理会话约 60 万通。
+          </p>
+          <ul class="res">
+            <li class="res__item"><span class="kpi mono">−37%</span>人工转接率</li>
+            <li class="res__item"><span class="kpi mono">−52%</span>单次会话成本</li>
+            <li class="res__item"><span class="kpi mono">88% → 94%</span>意图识别准确率</li>
+          </ul>
+          <details class="more">
+            <summary class="more__sum mono">展开细节</summary>
+            <div class="more__body">
+              <ul class="dots">
+                <li>设计分级人机协同：高置信度自动应答，低置信度转人工并把结果回流训练。</li>
+                <li>做「用户挫败信号」埋点——把"用户开始骂人"变成可量化、可归因的指标。</li>
+                <li>与算法团队共建每周 badcase 复盘，坚持了两年，从未断过。</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </li>
+
+      <li class="tl__item reveal">
+        <div class="tl__node" aria-hidden="true"></div>
+        <div class="tl__body">
+          <p class="tl__when mono">2019.07 — 2021.02</p>
+          <h3 class="tl__org">某 SaaS 公司<span class="tl__role">产品经理 · 后转 AI 方向</span></h3>
+          <p class="tl__sum">
+            从表单工具产品做起，主导公司第一个 AI 功能「智能字段填充」。
+          </p>
+          <ul class="res">
+            <li class="res__item"><span class="kpi mono">63%</span>功能使用率</li>
+            <li class="res__item"><span class="kpi mono">#1</span>成为当年新签客户的第一提及卖点</li>
+          </ul>
+          <details class="more">
+            <summary class="more__sum mono">展开细节</summary>
+            <div class="more__body">
+              <ul class="dots">
+                <li>用最笨的办法验证需求：先手工模拟 AI 输出，看用户愿不愿意用，再谈开发。</li>
+                <li>这个功能的成功，让我决定把职业方向正式转到 AI。</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </li>
+
+      <li class="tl__item tl__item--edu reveal">
+        <div class="tl__node" aria-hidden="true"></div>
+        <div class="tl__body">
+          <p class="tl__when mono">2015.09 — 2019.06</p>
+          <h3 class="tl__org">某大学<span class="tl__role">信息管理 · 学士</span></h3>
+          <p class="tl__sum">毕业论文方向：推荐系统的冷启动问题。</p>
+        </div>
+      </li>
+
+    </ol>
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     05 · WORK
+     ========================================================================== -->
+<section class="sect" id="work" aria-labelledby="work-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/work</span><span class="cmd__sign">$</span><span class="cmd__text">ls -la projects/</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="work-title">代表项目</h2>
+      <p class="sect__en arcade" aria-hidden="true">SELECTED WORK</p>
+      <p class="sect__note">
+        每个项目我只写四件事：我负责什么、做了什么关键取舍、结果如何、学到了什么。
+      </p>
+    </header>
+
+    <ul class="cards">
+
+      <!-- ▼ 替换：项目卡片。建议保留"关键决策"这一项，它是面试官唯一会细看的地方 -->
+      <li class="card reveal">
+        <p class="card__code arcade" aria-hidden="true">ATLAS</p>
+        <h3 class="card__title">企业知识库 Agent</h3>
+        <p class="card__desc">让企业客户用自己的文档库提问，且每个答案都能指回原文。</p>
+        <dl class="card__kv">
+          <div class="card__kv-row">
+            <dt class="mono">我的角色</dt>
+            <dd>产品负责人 · 带 1 设计 + 1 数据</dd>
+          </div>
+          <div class="card__kv-row">
+            <dt class="mono">关键决策</dt>
+            <dd>放弃当时更流行的纯向量检索，改为结构化索引 + 混合检索。先牺牲一点召回率，换回答案的可追溯性。</dd>
+          </div>
+        </dl>
+        <ul class="res res--sm">
+          <li class="res__item"><span class="kpi mono">95%</span>答案可溯源率（原 68%）</li>
+          <li class="res__item"><span class="kpi mono">2.3 万</span>客户周均检索次数</li>
+          <li class="res__item"><span class="kpi mono">+11pt</span>次年续费率</li>
+        </ul>
+        <ul class="tags" aria-label="相关技能">
+          <li class="tag mono">RAG</li>
+          <li class="tag mono">AGENT</li>
+          <li class="tag mono">评测体系</li>
+        </ul>
+      </li>
+
+      <li class="card reveal">
+        <p class="card__code arcade" aria-hidden="true">MUSE</p>
+        <h3 class="card__title">C 端 AI 写作助手</h3>
+        <p class="card__desc">面向内容创作者的协作式写作工具，不是"一键生成"。</p>
+        <dl class="card__kv">
+          <div class="card__kv-row">
+            <dt class="mono">我的角色</dt>
+            <dd>从 0 到 1 产品经理</dd>
+          </div>
+          <div class="card__kv-row">
+            <dt class="mono">关键决策</dt>
+            <dd>拒绝做一键成文。它会掩盖质量问题，用户也不知道该改哪里。改做逐段协作，把控制权交回作者。</dd>
+          </div>
+        </dl>
+        <ul class="res res--sm">
+          <li class="res__item"><span class="kpi mono">14% → 31%</span>次日留存</li>
+          <li class="res__item"><span class="kpi mono">180 万</span>上线半年 MAU</li>
+        </ul>
+        <ul class="tags" aria-label="相关技能">
+          <li class="tag mono">LLM 应用</li>
+          <li class="tag mono">留存</li>
+          <li class="tag mono">交互设计</li>
+        </ul>
+      </li>
+
+      <li class="card reveal">
+        <p class="card__code arcade" aria-hidden="true">SENTRY</p>
+        <h3 class="card__title">内容风控分级审核</h3>
+        <p class="card__desc">平台内容安全的分级人机协同系统，把人工用在真正需要人的地方。</p>
+        <dl class="card__kv">
+          <div class="card__kv-row">
+            <dt class="mono">我的角色</dt>
+            <dd>产品 + 数据</dd>
+          </div>
+          <div class="card__kv-row">
+            <dt class="mono">关键决策</dt>
+            <dd>不做全自动替代人工，而是按置信度分级：高置信自动判定，灰区交人工并回流成训练数据。</dd>
+          </div>
+        </dl>
+        <ul class="res res--sm">
+          <li class="res__item"><span class="kpi mono">−70%</span>人工审核量</li>
+          <li class="res__item"><span class="kpi mono">−0.4pt</span>误杀率</li>
+          <li class="res__item"><span class="kpi mono">持平</span>漏放率</li>
+        </ul>
+        <ul class="tags" aria-label="相关技能">
+          <li class="tag mono">风控</li>
+          <li class="tag mono">人机协同</li>
+          <li class="tag mono">指标设计</li>
+        </ul>
+      </li>
+
+      <li class="card reveal">
+        <p class="card__code arcade" aria-hidden="true">THIS</p>
+        <h3 class="card__title">你正在看的这个网站</h3>
+        <p class="card__desc">一个零依赖、零构建的复古像素个人站，顺便当作我的前端自测题。</p>
+        <dl class="card__kv">
+          <div class="card__kv-row">
+            <dt class="mono">我的角色</dt>
+            <dd>设计 + 实现</dd>
+          </div>
+          <div class="card__kv-row">
+            <dt class="mono">关键决策</dt>
+            <dd>全程手写 HTML / CSS / 原生 JS，不引入框架和构建步骤。所有炫技效果都必须能一键关闭，且关掉后正文可读性不能变差。</dd>
+          </div>
+        </dl>
+        <ul class="res res--sm">
+          <li class="res__item"><span class="kpi mono">0</span>第三方 JS 依赖</li>
+          <li class="res__item"><span class="kpi mono">100%</span>禁用 JS 后内容仍可完整阅读</li>
+        </ul>
+        <ul class="tags" aria-label="相关技能">
+          <li class="tag mono">HTML</li>
+          <li class="tag mono">CSS</li>
+          <li class="tag mono">原生 JS</li>
+        </ul>
+      </li>
+
+    </ul>
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     06 · METHOD
+     ========================================================================== -->
+<section class="sect" id="method" aria-labelledby="method-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/method</span><span class="cmd__sign">$</span><span class="cmd__text">cat gates.md</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="method-title">上线一个 AI 功能的五道关</h2>
+      <p class="sect__en arcade" aria-hidden="true">SHIP GATES</p>
+      <p class="sect__note">
+        这是我实际在用的流程，每一关都有一个必须产出的东西。
+        没有产出物就不进入下一关——这一条帮我挡掉了很多"感觉很酷"的需求。
+      </p>
+    </header>
+
+    <!-- 这里的内容本身就是有先后顺序的流程，所以用序号是有意义的 -->
+    <ol class="gates">
+
+      <li class="gate reveal">
+        <p class="gate__idx mono" aria-hidden="true">01</p>
+        <h3 class="gate__name">问题定义</h3>
+        <p class="gate__desc">先把"要解决什么"写成一句话，再写清楚"不做什么"。大多数 AI 项目是死在这一步没说清楚。</p>
+        <p class="gate__out"><span class="gate__out-k mono">交付物</span>一句话问题陈述 + 明确的不做清单</p>
+      </li>
+
+      <li class="gate reveal">
+        <p class="gate__idx mono" aria-hidden="true">02</p>
+        <h3 class="gate__name">能力边界验证</h3>
+        <p class="gate__desc">用一个最小探针 Demo 把模型打到极限，列出它会怎么失败——而不是它能做什么。</p>
+        <p class="gate__out"><span class="gate__out-k mono">交付物</span>可行性探针 + 失败模式清单</p>
+      </li>
+
+      <li class="gate reveal">
+        <p class="gate__idx mono" aria-hidden="true">03</p>
+        <h3 class="gate__name">评测集设计</h3>
+        <p class="gate__desc">没有评测集就没有迭代。分三层：正常样本、边界样本、对抗样本，并提前定下通过线。</p>
+        <p class="gate__out"><span class="gate__out-k mono">交付物</span>分层评测集（≥200 条）+ 通过线定义</p>
+      </li>
+
+      <li class="gate reveal">
+        <p class="gate__idx mono" aria-hidden="true">04</p>
+        <h3 class="gate__name">灰度与护栏</h3>
+        <p class="gate__desc">AI 的失败是概率性的，所以要预设降级：置信度低时怎么退、退到什么状态、谁来兜。</p>
+        <p class="gate__out"><span class="gate__out-k mono">交付物</span>灰度方案 + 兜底与降级策略</p>
+      </li>
+
+      <li class="gate reveal">
+        <p class="gate__idx mono" aria-hidden="true">05</p>
+        <h3 class="gate__name">复盘闭环</h3>
+        <p class="gate__desc">看指标不如看 badcase。每轮迭代都要回答一句话：这次改动让哪一类失败变少了。</p>
+        <p class="gate__out"><span class="gate__out-k mono">交付物</span>指标归因报告 + 下一轮迭代假设</p>
+      </li>
+
+    </ol>
+  </div>
+</section>
+
+
+<!-- ==========================================================================
+     07 · UPLINK
+     ========================================================================== -->
+<section class="sect sect--last" id="uplink" aria-labelledby="uplink-title">
+  <div class="shell">
+
+    <p class="cmd mono" aria-hidden="true">
+      <span class="cmd__path">~/contact</span><span class="cmd__sign">$</span><span class="cmd__text">./uplink --connect</span>
+    </p>
+
+    <header class="sect__head reveal">
+      <h2 class="sect__title" id="uplink-title">建立连接</h2>
+      <p class="sect__en arcade" aria-hidden="true">UPLINK</p>
+      <p class="sect__note">
+        对 Agent 产品的落地、AI 评测体系、或者只是想聊聊某个想不明白的需求，都欢迎找我。
+        邮件我一般当天回。
+      </p>
+    </header>
+
+    <ul class="links">
+
+      <!-- ▼ 替换：联系方式。data-copy 的值必须和链接文字完全一致，复制按钮依赖它 -->
+      <li class="link reveal">
+        <span class="link__k mono">EMAIL</span>
+        <a class="link__v" href="mailto:hi@linyan.dev">hi@linyan.dev</a>
+        <button class="copy mono" type="button" data-copy="hi@linyan.dev" aria-label="复制邮箱 hi@linyan.dev">COPY</button>
+      </li>
+
+      <li class="link reveal">
+        <span class="link__k mono">GITHUB</span>
+        <a class="link__v" href="https://github.com/" target="_blank" rel="noopener noreferrer">github.com/linyan</a>
+        <button class="copy mono" type="button" data-copy="https://github.com/linyan" aria-label="复制 GitHub 主页地址">COPY</button>
+      </li>
+
+      <li class="link reveal">
+        <span class="link__k mono">即刻</span>
+        <a class="link__v" href="https://okjike.com/" target="_blank" rel="noopener noreferrer">@林砚</a>
+        <button class="copy mono" type="button" data-copy="林砚" aria-label="复制即刻用户名">COPY</button>
+      </li>
+
+      <li class="link reveal">
+        <span class="link__k mono">WECHAT</span>
+        <span class="link__v">linyan_pm</span>
+        <button class="copy mono" type="button" data-copy="linyan_pm" aria-label="复制微信号">COPY</button>
+      </li>
+
+      <li class="link reveal">
+        <span class="link__k mono">RESUME</span>
+        <a class="link__v" href="assets/resume.pdf" download>下载简历（PDF）</a>
+      </li>
+
+    </ul>
+
+    <footer class="foot">
+      <p class="mono faint">© 2026 林砚 · 手写于 HTML / CSS / 原生 JS · 无框架 · 无追踪</p>
+      <p class="mono faint">按 <kbd class="kbd">`</kbd> 随时打开终端 · 按 <kbd class="kbd">Esc</kbd> 关闭</p>
+    </footer>
+
+  </div>
+</section>
+
+</main>
+
+
+<!-- ==========================================================================
+     终端浮层
+     ========================================================================== -->
+<div class="term" id="terminal" role="dialog" aria-modal="true" aria-labelledby="term-title" hidden>
+  <div class="term__win">
+
+    <div class="term__bar">
+      <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <p class="term__title mono" id="term-title">guest@linyan — zsh — 80×24</p>
+      <button class="term__close" id="term-close" type="button" aria-label="关闭终端">✕</button>
+    </div>
+
+    <div class="term__body">
+      <div class="term__out mono" id="term-out" role="log" aria-live="polite" aria-label="终端输出"></div>
+
+      <form class="term__form" id="term-form" autocomplete="off">
+        <label class="sr-only" for="term-input">在这里输入命令</label>
+        <span class="term__prompt mono" aria-hidden="true">guest@linyan:~$</span>
+        <input class="term__input mono" id="term-input" name="cmd" type="text"
+               spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off">
+      </form>
+
+      <p class="term__help mono" id="term-help">
+        输入 <span class="glow--cyan">help</span> 看全部命令 · ↑ ↓ 翻历史 · Tab 补全 · Esc 关闭
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+<!-- 全部为经典 script（非 module），这样双击 index.html 用 file:// 打开也能正常工作 -->
+<script src="js/data.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/glitch.js"></script>
+<script src="js/typewriter.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/scroll.js"></script>
+<script src="js/matrix.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/terminal.js"></script>
+<script src="js/boot.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
